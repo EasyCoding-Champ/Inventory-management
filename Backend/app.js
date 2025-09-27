@@ -41,7 +41,6 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json());
-app.use(express.urlencoded());
 connectdb();
 
 app.use("/api/v1/users", userRouter);
