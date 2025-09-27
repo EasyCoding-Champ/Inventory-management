@@ -108,7 +108,7 @@ const router = createBrowserRouter([
 ]);
 
 export default router;
-export const SERVER_URL ="http://localhost:3000"
+export const SERVER_URL =import.meta.env.VITE_LOCAL
   import.meta.env.VITE_MODE === "DEV"
     ? import.meta.env.VITE_LOCAL
     : import.meta.env.VITE_SERVER;
