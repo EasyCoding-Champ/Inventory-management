@@ -29,6 +29,16 @@ app.use(
   })
 );
 
+app.use(
+  cors({
+      // methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    // credentials: true,
+    // preflightContinue: false,
+    origin: process.env.FRONTEND_URL,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded());
@@ -59,15 +69,6 @@ app.use((error, req, res, next) => {
 // For ES Modules compatibility
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Serve frontend build in production
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/build")));
-
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
-  });
-}
 
 app.listen(process.env.PORT, () => {
   console.log(
