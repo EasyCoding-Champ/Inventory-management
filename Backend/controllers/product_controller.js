@@ -12,12 +12,18 @@ export const createProduct = async (req, res) => {
       return res.status(400).json({ error: "SubCategory name is required" });
     }
 
-    const preparedItems = (items || []).map((item) => ({
-      unit: item.unit || "pcs",
-      quantity: Number(item.quantity) || 0,
-      pricePerUnit: Number(item.pricePerUnit) || 0,
-      totalAmount: (Number(item.quantity) || 0) * (Number(item.pricePerUnit) || 0),
-    }));
+    const preparedItems = (items || []).map((item) => {
+      const qty = Number(item.quantity) || 0;
+      const price = Number(item.pricePerUnit) || 0;
+
+      return {
+        unit: item.unit || "pcs",
+        quantity: qty, // available stock
+        totalPurchaseQuantity: qty, // total purchased (never decreases)
+        pricePerUnit: price,
+        totalAmount: qty * price,
+      };
+    });
 
     const product = new Product({
       title,
@@ -43,7 +49,6 @@ export const getAllProducts = async (req, res) => {
     const regex = new RegExp(search, "i");
 
     const query = { title: regex };
-
     if (categoryId) query["category._id"] = categoryId;
 
     const skipItems = (page - 1) * itemsperpage;
@@ -81,37 +86,55 @@ export const updateProductById = async (req, res) => {
   try {
     const { title, category, subCategory, childCategory, items } = req.body;
 
-    const updates = {
-      title,
-      category,
-      subCategory,
-      childCategory: childCategory || undefined,
-    };
-
-    if (items?.length) {
-      updates.items = items.map((item) => ({
-        unit: item.unit || "pcs",
-        quantity: Number(item.quantity) || 0,
-        pricePerUnit: Number(item.pricePerUnit) || 0,
-        totalAmount: (Number(item.quantity) || 0) * (Number(item.pricePerUnit) || 0),
-      }));
-      updates.grandTotalAmount = updates.items.reduce((sum, i) => sum + i.totalAmount, 0);
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      { $set: updates },
-      { new: true, runValidators: true }
-    );
+    // Update basic fields
+    product.title = title || product.title;
+    product.category = category || product.category;
+    product.subCategory = subCategory || product.subCategory;
+    product.childCategory = childCategory || product.childCategory;
 
-    if (!updatedProduct)
-      return res.status(404).json({ error: "Product not found" });
+    if (items?.length) {
+      // Loop through new items and merge with existing ones
+      product.items = items.map((item, idx) => {
+        const existing = product.items[idx]; // match by index (better to match by SKU/code if available)
 
-    res.status(200).json(updatedProduct);
+        const addedQty = Number(item.quantity) || 0;
+        const pricePerUnit = Number(item.pricePerUnit) || 0;
+
+        return {
+          unit: item.unit || existing?.unit || "pcs",
+
+          // 🟢 increment purchase history
+          totalPurchaseQuantity:
+            (existing?.totalPurchaseQuantity || 0) + addedQty,
+
+          // 🟢 update balance (existing balance + new added quantity)
+          quantity: (existing?.quantity || 0) + addedQty,
+
+          pricePerUnit,
+          totalAmount: ((existing?.totalPurchaseQuantity || 0) + addedQty) * pricePerUnit,
+        };
+      });
+
+      // 🟢 recalc grand total
+      product.grandTotalAmount = product.items.reduce(
+        (sum, i) => sum + i.totalAmount,
+        0
+      );
+    }
+
+    await product.save();
+
+    res.status(200).json(product);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
+
 
 // Delete Product by ID
 export const deleteProductById = async (req, res) => {

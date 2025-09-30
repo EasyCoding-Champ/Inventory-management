@@ -11,6 +11,7 @@ import sellProfitRoutes from "./routes/sellProfitRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
 import transactionRoutes from "./routes/transactionRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import agentRoutes from "./routes/agentRoutes.js"
 import path from "path";
 import { fileURLToPath } from "url";
 import messageRoutes from "./routes/messageRoutes.js";
@@ -52,6 +53,7 @@ app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/sellProfit", sellProfitRoutes);
 app.use("/api/v1/place-order", orderRoutes);
 app.use("/api/v1/messages", messageRoutes);
+app.use("/api/v1/agent", agentRoutes);
 app.use(express.urlencoded({ extended: true }));
 
 // console.log(process.env.FRONTEND_URL);

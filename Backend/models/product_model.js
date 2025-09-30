@@ -5,6 +5,7 @@ const ItemSchema = new mongoose.Schema(
     // e.g. cement, rod, ring
     unit: { type: String, default: "pcs" }, // e.g. bag, kg, piece
     quantity: { type: Number, default: 0 }, // count/weight
+    totalPurchaseQuantity:{ type: Number, default: 0 },
     pricePerUnit: { type: Number, default: 0 },
     totalAmount: { type: Number, default: 0 },
   },
@@ -50,7 +51,7 @@ ProductSchema.pre("save", function (next) {
 
   this.items = this.items.map((item) => {
     const calcTotal =
-      (item.quantity || 0) * (item.pricePerUnit || 0);
+      (item.totalPurchaseQuantity || 0) * (item.pricePerUnit || 0);
     item.totalAmount = calcTotal;
     total += calcTotal;
     return item;
