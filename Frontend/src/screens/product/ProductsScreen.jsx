@@ -86,7 +86,8 @@ function ProductsScreen() {
                 <th className="px-4 py-2">CATEGORY</th>
                 <th className="px-4 py-2">SUB-CATEGORY</th>
                 <th className="px-4 py-2">CHILD-CATEGORY</th>
-                <th className="px-4 py-2">ITEMS</th>
+                <th className="px-4 py-2">TOTAL-PURCHASE-PRODUCT</th>
+                <th className="px-4 py-2">BALANCE-PRODUCT</th>
                 <th className="px-4 py-2">GRAND TOTAL</th>
                 <th className="px-4 py-2">CREATED BY</th>
                 <th className="px-4 py-2">ACTION</th>
@@ -175,7 +176,16 @@ export function ProductRow({ product, index, currentPage, itemsPerPage, user }) 
         {product.items?.length
           ? product.items.map((item, i) => (
               <div key={i}>
-                {item.quantity}×{item.pricePerUnit}  = ₹{item.totalAmount}
+                {item.totalPurchaseQuantity}
+              </div>
+            ))
+          : "-"}
+      </td>
+      <td className="px-4 py-2">
+        {product.items?.length
+          ? product.items.map((item, i) => (
+              <div key={i}>
+                {item.quantity}
               </div>
             ))
           : "-"}
